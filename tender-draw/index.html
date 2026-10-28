@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A1729">
+<title>招标代理机构随机抽签 · 集中采购</title>
+<meta name="description" content="集中采购招标代理机构随机抽签。从候选机构中随机产生一家招标代理机构，结果当场公布。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A1729'/%3E%3Ccircle cx='16' cy='16' r='8.5' fill='none' stroke='%23C9A66B' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23C9A66B'/%3E%3C/svg%3E">
+<style>
+  /* ======================================================================
+     集中采购招标代理机构随机抽签
+     深海军蓝 / 暖白 / 香槟金
+     视觉系统参考 elayadesign/ai-design-skills：
+     字号对齐类型阶梯，间距取自间距表，圆角取自半径表，
+     动效统一 cubic-bezier(.22,1,.36,1)，仅动 transform 与 opacity。
+     ====================================================================== */
+
+  :root {
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+
+    --row: 72px;
+
+    /* 纸面颗粒：极轻的噪点，避免大面积纯色显得平 */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+
+    --font: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", "Noto Sans SC",
+      "Source Han Sans SC", "Hiragino Sans GB", system-ui, sans-serif;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+    --alert: #DFA48C;
+  }
+
+  /* ======================================================================
+     配色方案：同一套设计语言，三档不同温度的深色底。
+     金色始终是香槟一系，只随底色微调色温，避免三套之间像三种风格。
+     顺序有意义：后定义的方案覆盖前面的，靠后即优先。
+     ====================================================================== */
+
+  /* 墨金 —— 深海军蓝 + 香槟金（默认） */
+  :root,
+  [data-theme="ink"] {
+    --ink-950: #07121E;
+    --ink-900: #0A1726;
+    --ink-850: #0D1D2F;
+    --ink-800: #122438;
+    --ink-750: #172C42;
+
+    --cream: #F4EFE5;
+    --cream-72: rgba(244, 239, 229, 0.72);
+    --cream-56: rgba(244, 239, 229, 0.56);
+    --cream-38: rgba(244, 239, 229, 0.38);
+    --cream-24: rgba(244, 239, 229, 0.24);
+
+    --line: rgba(214, 199, 172, 0.11);
+    --line-strong: rgba(214, 199, 172, 0.18);
+
+    --gold: #C9A468;
+    --gold-bright: #E2C58F;
+    --gold-line: rgba(201, 164, 104, 0.34);
+    --gold-veil: rgba(201, 164, 104, 0.13);
+  }
+
+  /* 玄石 —— 暖近黑 + 古铜，偏皮革与黄铜的质料感 */
+  [data-theme="stone"] {
+    --ink-950: #0D0B09;
+    --ink-900: #12100D;
+    --ink-850: #17140F;
+    --ink-800: #1D1913;
+    --ink-750: #262019;
+
+    --cream: #F2EBDD;
+    --cream-72: rgba(242, 235, 221, 0.72);
+    --cream-56: rgba(242, 235, 221, 0.56);
+    --cream-38: rgba(242, 235, 221, 0.38);
+    --cream-24: rgba(242, 235, 221, 0.24);
+
+    --line: rgba(216, 198, 166, 0.12);
+    --line-strong: rgba(216, 198, 166, 0.2);
+
+    --gold: #C39C63;
+    --gold-bright: #DCC08B;
+    --gold-line: rgba(195, 156, 99, 0.36);
+    --gold-veil: rgba(195, 156, 99, 0.13);
+  }
+
+  /* 苍翠 —— 深松墨绿 + 淡金，最沉的一档 */
+  [data-theme="pine"] {
+    --ink-950: #05120E;
+    --ink-900: #071811;
+    --ink-850: #0A2118;
+    --ink-800: #0E2A1F;
+    --ink-750: #133326;
+
+    --cream: #EEEEDF;
+    --cream-72: rgba(238, 238, 223, 0.72);
+    --cream-56: rgba(238, 238, 223, 0.56);
+    --cream-38: rgba(238, 238, 223, 0.38);
+    --cream-24: rgba(238, 238, 223, 0.24);
+
+    --line: rgba(206, 214, 194, 0.12);
+    --line-strong: rgba(206, 214, 194, 0.2);
+
+    --gold: #C8B27C;
+    --gold-bright: #E0CD9F;
+    --gold-line: rgba(200, 178, 124, 0.34);
+    --gold-veil: rgba(200, 178, 124, 0.13);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--ink-950);
+    background-image: var(--grain);
+    background-blend-mode: soft-light;
+    background-repeat: repeat;
+    color: var(--cream);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 顶部一道发丝金线，全页唯一的结构性装饰 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background-color: var(--gold);
+    opacity: 0.45;
+    z-index: 10;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip {
+    position: absolute;
+    top: -64px;
+    left: 24px;
+    z-index: 20;
+    padding: 8px 12px;
+    border-radius: var(--r-sm);
+    background-color: var(--gold);
+    color: var(--ink-950);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.5s var(--ease);
+  }
+
+  .skip:focus-visible {
+    transform: translateY(88px);
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: rgba(201, 166, 107, 0.32);
+    color: var(--cream);
+  }
+
+  /* ---------- 布局 ---------- */
+
+  .shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 64px 48px 48px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    /* 内容不满一屏时垂直居中；内容更高时 safe 会退回顶部对齐，不会被裁掉 */
+    justify-content: safe center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: 40px;
+    align-items: stretch;
+  }
+
+  /* ---------- 页头 ---------- */
+
+  .head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 40px;
+  }
+
+  .head-main { min-width: 0; }
+
+  /* ---------- 配色切换 ---------- */
+
+  .themes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .themes-label {
+    margin-right: 4px;
+    color: var(--cream-38);
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.12em;
+  }
+
+  .theme-chip {
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--cream-38);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color 0.3s var(--ease), background-color 0.3s var(--ease),
+      border-color 0.3s var(--ease);
+  }
+
+  .theme-chip:hover {
+    color: var(--cream-72);
+    background-color: var(--ink-750);
+  }
+
+  .theme-chip:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .theme-chip[aria-checked="true"] {
+    border-color: var(--gold-line);
+    background-color: var(--gold-veil);
+    color: var(--gold);
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 16px;
+    color: var(--gold);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+  }
+
+  /* 眉标前一小段金线，把视线带进标题 */
+  .eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background-color: var(--gold);
+    opacity: 0.9;
+  }
+
+  .title {
+    max-width: 680px;
+    margin: 0 0 16px;
+    font-size: clamp(32px, 2.4vw + 22px, 40px);
+    line-height: 1.15;
+    font-weight: 600;
+    letter-spacing: 0.012em;
+    text-wrap: balance;
+    background-image: linear-gradient(96deg, #FFFFFF 12%, #C9C2B4 92%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub {
+    max-width: 620px;
+    margin: 0;
+    color: var(--cream-56);
+    letter-spacing: 0.015em;
+    text-wrap: pretty;
+  }
+
+  .sub code {
+    color: var(--cream-72);
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+
+  /* ---------- 面板 ---------- */
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background-color: var(--ink-850);
+    /* 顶边内高光 + 大范围低阴影，做出轻微浮起的层次 */
+    box-shadow:
+      inset 0 1px 0 rgba(244, 239, 229, 0.045),
+      0 24px 48px -40px rgba(0, 0, 0, 0.7);
+  }
+
+  /* 抽签台比名单面板略提亮半档，视线自然落在要操作的地方 */
+  .panel--stage {
+    background-color: var(--ink-800);
+    border-color: var(--line-strong);
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .panel-title {
+    margin: 0;
+    color: var(--cream-56);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+  }
+
+  .panel-title--quiet { color: var(--cream-56); }
+
+  .count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--cream-38);
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  .count b {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+
+  /* ---------- 名单 ---------- */
+
+  .roster {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 690px;
+    margin: 0;
+    padding: 0 4px 0 0;
+    list-style: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(214, 199, 172, 0.16) transparent;
+  }
+
+  .roster::-webkit-scrollbar { width: 8px; }
+
+  .roster::-webkit-scrollbar-thumb {
+    border-radius: var(--r-sm);
+    background-color: rgba(214, 199, 172, 0.14);
+  }
+
+  .roster::-webkit-scrollbar-track { background-color: transparent; }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    background-color: rgba(244, 239, 229, 0.032);
+    transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease),
+      transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
+  }
+
+  .chip .ord {
+    min-width: 24px;
+    color: var(--cream-38);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chip .name {
+    color: var(--cream-72);
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.012em;
+  }
+
+  .chip.is-winner {
+    border-color: var(--gold-line);
+    background-color: var(--gold-veil);
+    box-shadow: inset 0 1px 0 rgba(226, 197, 143, 0.16);
+  }
+
+  .chip.is-winner .ord { color: var(--gold); }
+
+  .chip.is-winner .name {
+    color: var(--cream);
+    font-weight: 600;
+  }
+
+  .state {
+    margin: 16px 0 0;
+    color: var(--cream-56);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .state:empty { display: none; }
+  .state.is-error { color: var(--alert); }
+
+  .panel-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .linkbtn {
+    padding: 4px 8px;
+    margin-right: -8px;
+    border: 0;
+    border-radius: var(--r-sm);
+    background: none;
+    color: var(--cream-56);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: color 0.3s var(--ease), background-color 0.3s var(--ease),
+      transform 0.3s var(--ease), opacity 0.3s var(--ease);
+  }
+
+  .linkbtn:hover:not(:disabled) {
+    background-color: var(--ink-750);
+    color: var(--cream);
+  }
+
+  .linkbtn:active:not(:disabled) { transform: scale(0.98); }
+
+  .linkbtn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .linkbtn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ---------- 修改名单 ---------- */
+
+  .sheet {
+    width: min(560px, calc(100vw - 32px));
+    max-height: min(84vh, 680px);
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    background-color: var(--ink-850);
+    color: var(--cream);
+    overflow: auto;
+    box-shadow:
+      inset 0 1px 0 rgba(244, 239, 229, 0.06),
+      0 48px 96px -48px rgba(0, 0, 0, 0.95);
+  }
+
+  .sheet::backdrop {
+    background-color: rgba(4, 10, 18, 0.74);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  @keyframes sheet-in {
+    from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.99); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .sheet[open] { animation: sheet-in 0.32s var(--ease); }
+
+  .sheet-inner { padding: 24px; }
+
+  .sheet-title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+
+  .sheet-note {
+    margin: 0 0 24px;
+    color: var(--cream-56);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .edit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .edit-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .edit-row .ord {
+    min-width: 24px;
+    color: var(--cream-38);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    background-color: rgba(244, 239, 229, 0.04);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0.012em;
+    transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+  }
+
+  .input::placeholder { color: var(--cream-24); }
+
+  .input:hover { border-color: var(--line-strong); }
+
+  .input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+
+  .edit-error {
+    margin: 0 0 16px;
+    color: var(--alert);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .edit-error:empty { display: none; }
+
+  .sheet-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .sheet-actions-right {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* ---------- 抽签台 ---------- */
+
+  .stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: calc(var(--row) * 3 + 64px);
+    margin-bottom: 32px;
+  }
+
+  .stage-idle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+  }
+
+  /* 一枚细金环 + 环心金点，作为静候状态的小印记 */
+  .stage-mark {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin-bottom: 16px;
+    border: 1px solid var(--gold-line);
+    border-radius: 50%;
+  }
+
+  .stage-mark::after {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--gold);
+    opacity: 0.85;
+  }
+
+  .stage-ph {
+    margin: 0;
+    color: var(--cream-38);
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-wrap: balance;
+  }
+
+  .stage-note {
+    max-width: 320px;
+    margin: 0;
+    color: var(--cream-56);
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.02em;
+    text-wrap: pretty;
+  }
+
+  .stage-note.is-error { color: var(--alert); }
+
+  /* 滚动窗帘 */
+
+  .tape-view {
+    position: relative;
+    width: 100%;
+    height: calc(var(--row) * 3);
+    overflow: hidden;
+    border-radius: var(--r-md);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 80%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 80%, transparent 100%);
+  }
+
+  .tape {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .tape-row {
+    height: var(--row);
+    padding: 0 16px;
+    color: var(--cream-56);
+    font-size: 24px;
+    line-height: var(--row);
+    letter-spacing: 0.03em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 取景窗：极淡金色晕染 + 上下两道内发丝线 */
+  .tape-frame {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--row);
+    height: var(--row);
+    border-radius: var(--r-md);
+    background-color: rgba(201, 164, 104, 0.055);
+    box-shadow:
+      inset 0 1px 0 rgba(226, 197, 143, 0.2),
+      inset 0 -1px 0 rgba(226, 197, 143, 0.2);
+    pointer-events: none;
+  }
+
+  /* 结果 */
+
+  .result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 8px 0;
+    text-align: center;
+    opacity: 0;
+    transform: translate3d(0, 32px, 0) scale(0.99);
+    transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+  }
+
+  .result.is-in {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  /* 再次抽签时先退场，避免结果被硬切 */
+  .result.is-out {
+    opacity: 0;
+    transform: translate3d(0, -16px, 0) scale(0.99);
+    transition-duration: 0.26s;
+  }
+
+  /* 揭晓时从左向右抽出的一小段金线 */
+  .result-rule {
+    width: 48px;
+    height: 1px;
+    background-color: var(--gold);
+    opacity: 0.75;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.9s var(--ease) 0.1s;
+  }
+
+  .result.is-in .result-rule { transform: scaleX(1); }
+
+  .result-label {
+    margin: 0;
+    color: var(--gold);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+  }
+
+  .result-name {
+    max-width: 560px;
+    margin: 0;
+    color: var(--cream);
+    font-size: clamp(30px, 3.2vw + 16px, 48px);
+    line-height: 1.16;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    text-shadow: 0 32px 80px rgba(201, 164, 104, 0.24);
+  }
+
+  .result-meta {
+    margin: 0;
+    color: var(--cream-56);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 20px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- 主按钮 ---------- */
+
+  .btn {
+    align-self: center;
+    min-width: 240px;
+    padding: 16px 32px;
+    border: 0;
+    border-radius: var(--r-md);
+    background-color: var(--gold);
+    color: var(--ink-950);
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-indent: 0.1em;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    /* 顶边内高光 + 底部金色辉光，做出金属质感而不依赖渐变 */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(28, 18, 4, 0.14),
+      0 20px 44px -22px rgba(201, 164, 104, 0.6);
+    transition: background-color 0.3s var(--ease), transform 0.3s var(--ease),
+      box-shadow 0.3s var(--ease), opacity 0.3s var(--ease);
+  }
+
+  .btn:hover:not(:disabled) {
+    background-color: var(--gold-bright);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(28, 18, 4, 0.12),
+      0 26px 52px -22px rgba(201, 164, 104, 0.68);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.99);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 12px 24px -18px rgba(201, 164, 104, 0.5);
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 3px;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  /* 抽签进行中：按钮保持金色，用极缓的呼吸代替灰色禁用态 */
+  #draw[aria-busy="true"] {
+    opacity: 0.85;
+    background-color: var(--gold);
+    cursor: progress;
+    animation: btn-breathe 1.8s var(--ease) infinite;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      0 14px 28px -22px rgba(201, 164, 104, 0.55);
+  }
+
+  @keyframes btn-breathe {
+    0%, 100% { opacity: 0.72; }
+    50% { opacity: 1; }
+  }
+
+  /* 次要按钮与紧凑尺寸，需放在 .btn 之后才能覆盖基层样式 */
+  .btn--ghost {
+    background-color: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--cream-72);
+  }
+
+  .btn--ghost:hover:not(:disabled) {
+    background-color: var(--ink-750);
+    color: var(--cream);
+    box-shadow: none;
+  }
+
+  .btn--ghost:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn--sm {
+    min-width: 0;
+    padding: 8px 16px;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  .hint {
+    min-height: 20px;
+    margin: 16px 0 0;
+    color: var(--cream-56);
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+  }
+
+  .hint.is-error { color: var(--alert); }
+
+  /* ---------- 自适应 ---------- */
+
+  @media (max-width: 900px) {
+    :root { --row: 64px; }
+
+    .shell {
+      padding: 32px max(24px, env(safe-area-inset-right))
+        calc(24px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+    }
+
+    /* 手机上先给抽签台和按钮，候选名单放在其后，避免按钮落在首屏之外 */
+    .panel--stage { order: -1; }
+
+    .grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+
+    .panel { padding: 24px; }
+
+    .head {
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .themes { padding-top: 0; }
+
+    .eyebrow { margin-bottom: 12px; }
+
+    .title { font-size: 30px; letter-spacing: 0.01em; }
+
+    .sub { font-size: 14px; line-height: 20px; }
+
+    /* 手机上不做内层滚动，名单随页面一起滚动 */
+    .roster {
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+    }
+
+    .stage { min-height: calc(var(--row) * 3 + 32px); margin-bottom: 24px; }
+
+    .stage-ph { font-size: 24px; line-height: 32px; }
+
+    .tape-row { font-size: 20px; }
+
+    #draw { width: 100%; align-self: stretch; }
+
+    .result { padding: 0; }
+
+    .result-name { letter-spacing: 0.02em; }
+
+    .result-meta { font-size: 12px; }
+
+    /* 手机上机构名降到 14px，让常见全称仍能排在一行内 */
+    .chip .name { font-size: 14px; line-height: 20px; }
+  }
+
+  /* 窄屏进一步收紧抽签窗格，让标题与按钮同屏 */
+  @media (max-width: 480px) {
+    :root { --row: 56px; }
+
+    .tape-row { font-size: 18px; }
+  }
+
+  /* ---------- 动效偏好 ---------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+
+    .result { transform: none; }
+    .tape { will-change: auto; }
+    #draw[aria-busy="true"] { animation: none; opacity: 0.8; }
+  }
+</style>
+<script>
+  /* 首屏前定好配色，避免刷新时闪一下默认色 */
+  (function () {
+    try {
+      var url = new URLSearchParams(window.location.search).get('theme');
+      var saved = window.localStorage.getItem('tender-draw.theme');
+      var theme = url || saved;
+      if (theme === 'ink' || theme === 'stone' || theme === 'pine') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    } catch (err) {
+      /* 静默：取不到就用默认墨金 */
+    }
+  })();
+</script>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<main class="shell" id="main">
+  <header class="head">
+    <div class="head-main">
+      <p class="eyebrow">集中采购 · 随机抽取</p>
+      <h1 class="title">招标代理机构随机抽签</h1>
+      <p class="sub">随机抽取一家招标代理机构，结果当场公布。</p>
+    </div>
+
+    <div class="themes" role="radiogroup" aria-label="配色方案">
+      <span class="themes-label" aria-hidden="true">配色</span>
+      <button class="theme-chip" type="button" role="radio" aria-checked="true"
+        data-theme-value="ink">墨金</button>
+      <button class="theme-chip" type="button" role="radio" aria-checked="false"
+        data-theme-value="stone">玄石</button>
+      <button class="theme-chip" type="button" role="radio" aria-checked="false"
+        data-theme-value="pine">苍翠</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="roster-title">
+      <div class="panel-head">
+        <h2 class="panel-title" id="roster-title">参与抽签机构</h2>
+        <div class="panel-meta">
+          <span class="count"><b id="count">—</b>家</span>
+          <button class="btn btn--ghost btn--sm" id="edit" type="button">修改名单</button>
+        </div>
+      </div>
+      <ol class="roster" id="roster"></ol>
+      <p class="state" id="roster-state" role="status"></p>
+    </section>
+
+    <section class="panel panel--stage" aria-labelledby="stage-title">
+      <div class="panel-head">
+        <h2 class="panel-title panel-title--quiet" id="stage-title">抽签结果</h2>
+      </div>
+
+      <div class="stage" id="stage"></div>
+
+      <button class="btn" id="draw" type="button" disabled>开始抽签</button>
+      <p class="hint" id="hint" role="status"></p>
+    </section>
+  </div>
+</main>
+
+<p class="sr-only" id="announcer" aria-live="polite"></p>
+
+<dialog class="sheet" id="edit-dialog" aria-labelledby="edit-title">
+  <form class="sheet-inner" id="edit-form" novalidate>
+    <h2 class="sheet-title" id="edit-title">修改候选机构</h2>
+    <p class="sheet-note">保存后立即生效，所有打开本系统的人看到的是同一份名单。</p>
+
+    <ul class="edit-list" id="edit-list"></ul>
+
+    <p class="edit-error" id="edit-error" role="alert"></p>
+
+    <div class="sheet-actions">
+      <button type="button" class="btn btn--ghost btn--sm" id="edit-add">添加一家</button>
+      <div class="sheet-actions-right">
+        <button type="button" class="btn btn--ghost btn--sm" id="edit-cancel">取消</button>
+        <button type="submit" class="btn btn--sm" id="edit-save">保存</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function () {
+  'use strict';
+
+  var SPIN_MS = 2200;
+  var TAPE_ROWS = 26;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  var el = {
+    roster: document.getElementById('roster'),
+    count: document.getElementById('count'),
+    rosterState: document.getElementById('roster-state'),
+    stage: document.getElementById('stage'),
+    draw: document.getElementById('draw'),
+    hint: document.getElementById('hint'),
+    announcer: document.getElementById('announcer'),
+    edit: document.getElementById('edit'),
+    dialog: document.getElementById('edit-dialog'),
+    editForm: document.getElementById('edit-form'),
+    editList: document.getElementById('edit-list'),
+    editError: document.getElementById('edit-error'),
+    editAdd: document.getElementById('edit-add'),
+    editCancel: document.getElementById('edit-cancel'),
+    editSave: document.getElementById('edit-save')
+  };
+
+  var view = { companies: [], busy: false, revealed: false, loaded: false };
+
+  /* ---------------------------------------------------------------- *
+   * 工具
+   * ---------------------------------------------------------------- */
+
+  function pad(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function fmtTime(date) {
+    return pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+  }
+
+  function setHint(text, isError) {
+    el.hint.textContent = text || '';
+    el.hint.classList.toggle('is-error', Boolean(isError));
+  }
+
+  function setRosterState(text, isError) {
+    el.rosterState.textContent = text || '';
+    el.rosterState.classList.toggle('is-error', Boolean(isError));
+  }
+
+  function announce(text) {
+    el.announcer.textContent = '';
+    window.setTimeout(function () {
+      el.announcer.textContent = text;
+    }, 80);
+  }
+
+  function cleanName(value) {
+    return String(value == null ? '' : value).trim().replace(/\s+/g, ' ');
+  }
+
+  /**
+   * 无偏随机整数：拒绝采样，避免取模带来的分布偏差。
+   * 依赖浏览器内置 crypto，不引入任何外部依赖。
+   */
+  function randomIndex(n) {
+    if (n <= 1) return 0;
+    var range = 4294967296;
+    var limit = Math.floor(range / n) * n;
+    var buf = new Uint32Array(1);
+    var value = 0;
+    do {
+      window.crypto.getRandomValues(buf);
+      value = buf[0];
+    } while (value >= limit);
+    return value % n;
+  }
+
+  /* ---------------------------------------------------------------- *
+   * 名单
+   * ---------------------------------------------------------------- */
+
+  function normalize(raw) {
+    var list = Array.isArray(raw) ? raw : raw && Array.isArray(raw.companies) ? raw.companies : null;
+    if (!list) return null;
+
+    var seen = new Set();
+    var out = [];
+
+    list.forEach(function (item) {
+      var name = cleanName(typeof item === 'string' ? item : item && item.name);
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      out.push(name);
+    });
+
+    return out;
+  }
+
+  /* 名单统一由服务端读写：GET 读取，PUT 保存 */
+  var API_ROSTER = 'api/companies';
+
+  async function fetchCompanies() {
+    var res;
+
+    try {
+      res = await fetch(API_ROSTER + '?t=' + Date.now(), {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
+      });
+    } catch (err) {
+      throw new Error(window.location.protocol === 'file:' ? '请求未能发出' : '无法连接服务');
+    }
+
+    var data = {};
+    try {
+      data = await res.json();
+    } catch (err) {
+      data = {};
+    }
+
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+
+    var list = normalize(data);
+    if (!list) throw new Error('名单格式无法识别');
+
+    return list;
+  }
+
+  async function putCompanies(list) {
+    var res;
+
+    try {
+      res = await fetch(API_ROSTER, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ companies: list })
+      });
+    } catch (err) {
+      throw new Error('无法连接服务');
+    }
+
+    var data = {};
+    try {
+      data = await res.json();
+    } catch (err) {
+      data = {};
+    }
+
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+
+    return data;
+  }
+
+  function renderRoster() {
+    var frag = document.createDocumentFragment();
+
+    view.companies.forEach(function (name, i) {
+      var li = document.createElement('li');
+      li.className = 'chip';
+
+      var ord = document.createElement('span');
+      ord.className = 'ord';
+      ord.textContent = pad(i + 1);
+
+      var label = document.createElement('span');
+      label.className = 'name';
+      label.textContent = name;
+
+      li.append(ord, label);
+      frag.appendChild(li);
+    });
+
+    el.roster.replaceChildren(frag);
+  }
+
+  function clearWinnerMark() {
+    el.roster.querySelectorAll('.chip.is-winner').forEach(function (chip) {
+      chip.classList.remove('is-winner');
+    });
+  }
+
+  function markWinner(name) {
+    el.roster.querySelectorAll('.chip').forEach(function (chip) {
+      var label = chip.querySelector('.name');
+      chip.classList.toggle('is-winner', Boolean(label) && label.textContent === name);
+    });
+  }
+
+  function fail(message) {
+    view.loaded = false;
+    view.companies = [];
+    renderRoster();
+    el.count.textContent = '—';
+    el.draw.disabled = true;
+    setRosterState(message, true);
+    setHint('名单未载入，暂时无法抽签。', true);
+  }
+
+  function applyCompanies(list) {
+    view.companies = list;
+    view.loaded = true;
+    renderRoster();
+    el.count.textContent = String(list.length);
+    el.draw.disabled = list.length === 0;
+
+    if (!list.length) {
+      setRosterState('暂无可抽签的机构，点「修改名单」添加一家。');
+      setHint('暂无可抽签的机构。', true);
+      return;
+    }
+
+    setRosterState('');
+    setHint('');
+  }
+
+  async function loadCompanies() {
+    setRosterState('正在读取名单…');
+
+    try {
+      applyCompanies(await fetchCompanies());
+    } catch (err) {
+      // 技术细节只留给控制台，界面上只给出业务人员能执行的下一步
+      console.error('[抽签] 名单读取失败：', err);
+
+      if (window.location.protocol === 'file:') {
+        fail('名单未能载入。请通过系统提供的访问地址打开本页面，或联系系统管理员。');
+      } else {
+        fail('名单未能载入，请稍后重试或联系系统管理员。');
+      }
+    }
+  }
+
+  /* ---------------------------------------------------------------- *
+   * 修改名单
+   * ---------------------------------------------------------------- */
+
+  function setEditError(text) {
+    el.editError.textContent = text || '';
+  }
+
+  function refreshOrdinals() {
+    Array.prototype.forEach.call(el.editList.children, function (li, i) {
+      var ord = li.querySelector('.ord');
+      if (ord) ord.textContent = pad(i + 1);
+
+      var input = li.querySelector('input');
+      if (input) input.setAttribute('aria-label', '第 ' + (i + 1) + ' 家机构名称');
+    });
+  }
+
+  function editorRow(name) {
+    var li = document.createElement('li');
+    li.className = 'edit-row';
+
+    var ord = document.createElement('span');
+    ord.className = 'ord';
+
+    var input = document.createElement('input');
+    input.className = 'input';
+    input.type = 'text';
+    input.value = name || '';
+    input.maxLength = 40;
+    input.placeholder = '填写机构全称';
+    input.addEventListener('input', function () {
+      if (el.editError.textContent) setEditError('');
+    });
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'linkbtn';
+    del.textContent = '删除';
+    del.addEventListener('click', function () {
+      if (el.editList.children.length === 1) {
+        input.value = '';
+        input.focus();
+        return;
+      }
+      li.remove();
+      refreshOrdinals();
+      setEditError('');
+    });
+
+    li.append(ord, input, del);
+    return li;
+  }
+
+  function renderEditor(list) {
+    var frag = document.createDocumentFragment();
+    list.forEach(function (name) {
+      frag.appendChild(editorRow(name));
+    });
+    el.editList.replaceChildren(frag);
+    refreshOrdinals();
+  }
+
+  function openEditor() {
+    if (view.busy) return;
+
+    setEditError('');
+    renderEditor(view.companies.length ? view.companies : ['']);
+
+    if (typeof el.dialog.showModal === 'function') {
+      el.dialog.showModal();
+    } else {
+      el.dialog.setAttribute('open', '');
+    }
+
+    window.setTimeout(function () {
+      var first = el.editList.querySelector('input');
+      if (!first) return;
+      first.focus();
+      first.select();
+    }, 40);
+  }
+
+  function closeEditor() {
+    if (typeof el.dialog.close === 'function' && el.dialog.open) {
+      el.dialog.close();
+    } else {
+      el.dialog.removeAttribute('open');
+    }
+  }
+
+  function addEditorRow() {
+    var li = editorRow('');
+    el.editList.appendChild(li);
+    refreshOrdinals();
+    var input = li.querySelector('input');
+    if (input) input.focus();
+  }
+
+  async function saveEditor(event) {
+    if (event) event.preventDefault();
+
+    var inputs = el.editList.querySelectorAll('input');
+    var seen = new Set();
+    var list = [];
+
+    for (var i = 0; i < inputs.length; i++) {
+      var name = cleanName(inputs[i].value);
+
+      if (!name) {
+        setEditError('第 ' + (i + 1) + ' 家的名称还没填。');
+        inputs[i].focus();
+        return;
+      }
+
+      if (seen.has(name)) {
+        setEditError('第 ' + (i + 1) + ' 家与前面的名称重复了。');
+        inputs[i].focus();
+        return;
+      }
+
+      seen.add(name);
+      list.push(name);
+    }
+
+    if (!list.length) {
+      setEditError('至少需要保留一家机构。');
+      return;
+    }
+
+    setEditError('');
+    el.editSave.disabled = true;
+    el.editSave.textContent = '保存中';
+
+    try {
+      var saved = await putCompanies(list);
+      var next = (saved && Array.isArray(saved.companies) && saved.companies.length) ? saved.companies : list;
+      applyCompanies(normalize(next) || list);
+    } catch (err) {
+      console.error('[抽签] 名单保存失败：', err);
+      setEditError('保存失败，请稍后重试或联系系统管理员。');
+      el.editSave.disabled = false;
+      el.editSave.textContent = '保存';
+      return;
+    }
+
+    el.editSave.disabled = false;
+    el.editSave.textContent = '保存';
+    resetStage();
+    closeEditor();
+  }
+
+  /** 名单变化后，已揭晓的结果不再成立，抽签台退回初始状态 */
+  function resetStage() {
+    view.revealed = false;
+    clearWinnerMark();
+    showIdle();
+    setBusy(false);
+  }
+
+  /* ---------------------------------------------------------------- *
+   * 抽签台
+   * ---------------------------------------------------------------- */
+
+  /**
+   * 机构全称常常偏长。中选名称必须整行读完，
+   * 因此在字号阶梯上逐级下调，取能单行放下的最大一级。
+   * 窄屏上单行会小到看不清，此时允许折成两行，但仍取能放下两行的最大字号。
+   */
+  var NAME_STEPS = [60, 48, 36, 30, 24, 20];
+
+  function fitResultName(node) {
+    if (!node || !node.parentElement) return;
+
+    var avail = Math.min(node.parentElement.clientWidth, 560);
+    if (!avail) return;
+
+    var narrow = window.matchMedia('(max-width: 900px)').matches;
+    var textLength = (node.textContent || '').length;
+    var chosen = NAME_STEPS[NAME_STEPS.length - 1];
+    var fitsOneLine = false;
+
+    node.style.whiteSpace = 'nowrap';
+
+    // 第一轮：找能单行放下的最大字号
+    for (var i = 0; i < NAME_STEPS.length; i++) {
+      node.style.fontSize = NAME_STEPS[i] + 'px';
+      if (node.scrollWidth <= avail + 6) {
+        chosen = NAME_STEPS[i];
+        fitsOneLine = true;
+        break;
+      }
+    }
+
+    // 第二轮：窄屏上退而求两行，取两行能放下的最大字号
+    if (!fitsOneLine && narrow) {
+      for (var j = 0; j < NAME_STEPS.length; j++) {
+        // 字距 0.03em 会让每字略宽，按 1.05 倍保守估算
+        var perLine = Math.floor(avail / (NAME_STEPS[j] * 1.05));
+        if (perLine >= 2 && Math.ceil(textLength / perLine) <= 2) {
+          chosen = NAME_STEPS[j];
+          break;
+        }
+      }
+    }
+
+    node.style.fontSize = chosen + 'px';
+    node.style.whiteSpace = fitsOneLine ? 'nowrap' : 'normal';
+  }
+
+  function showIdle() {
+    var wrap = document.createElement('div');
+    wrap.className = 'stage-idle';
+
+    var mark = document.createElement('span');
+    mark.className = 'stage-mark';
+
+    var ph = document.createElement('p');
+    ph.className = 'stage-ph';
+    ph.textContent = view.revealed ? '本轮已完成' : '待抽签';
+
+    var note = document.createElement('p');
+    note.className = 'stage-note';
+    note.textContent = view.revealed
+      ? '可再次抽签，结果重新随机生成'
+      : '点击下方按钮开始抽取';
+
+    wrap.append(mark, ph, note);
+    el.stage.replaceChildren(wrap);
+  }
+
+  function setBusy(busy) {
+    view.busy = busy;
+    el.draw.disabled = busy || !view.loaded || view.companies.length === 0;
+    el.draw.setAttribute('aria-busy', busy ? 'true' : 'false');
+    el.draw.textContent = busy ? '抽签中' : view.revealed ? '再次抽签' : '开始抽签';
+  }
+
+  function buildTape(companies, winner) {
+    var tapeView = document.createElement('div');
+    tapeView.className = 'tape-view';
+
+    var tape = document.createElement('div');
+    tape.className = 'tape';
+
+    var rows = [];
+    var previous = '';
+
+    for (var i = 0; i < TAPE_ROWS - 1; i++) {
+      // 避免相邻两行同名，否则滚动时像卡帧
+      var pick = companies[randomIndex(companies.length)];
+      if (companies.length > 1) {
+        var guard = 0;
+        while (pick === previous && guard < 12) {
+          pick = companies[randomIndex(companies.length)];
+          guard += 1;
+        }
+      }
+      previous = pick;
+
+      var row = document.createElement('div');
+      row.className = 'tape-row';
+      row.textContent = pick;
+      tape.appendChild(row);
+      rows.push(row);
+    }
+
+    // 末行即中选机构，动画让它停在取景框中央
+    var last = document.createElement('div');
+    last.className = 'tape-row';
+    last.textContent = winner;
+    tape.appendChild(last);
+    rows.push(last);
+
+    var frame = document.createElement('div');
+    frame.className = 'tape-frame';
+
+    tapeView.append(tape, frame);
+
+    return { view: tapeView, tape: tape, rows: rows };
+  }
+
+  function animateTape(tape) {
+    var raf = 0;
+    var cancelled = false;
+
+    var rowH = tape.rows[0] ? tape.rows[0].getBoundingClientRect().height : 56;
+    if (!rowH) rowH = 56;
+
+    // 末行落到三格取景框的中间格
+    var targetY = -(tape.rows.length - 2) * rowH;
+
+    var done = new Promise(function (resolve) {
+      if (reduceMotion.matches) {
+        tape.tape.style.transform = 'translate3d(0, ' + targetY + 'px, 0)';
+        resolve();
+        return;
+      }
+
+      var start = performance.now();
+
+      function step(now) {
+        if (cancelled) {
+          resolve();
+          return;
+        }
+        var p = Math.min(1, (now - start) / SPIN_MS);
+        var eased = 1 - Math.pow(1 - p, 5);
+        tape.tape.style.transform = 'translate3d(0, ' + (targetY * eased).toFixed(2) + 'px, 0)';
+        if (p < 1) {
+          raf = window.requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+
+      raf = window.requestAnimationFrame(step);
+    });
+
+    return {
+      done: done,
+      cancel: function () {
+        cancelled = true;
+        window.cancelAnimationFrame(raf);
+      }
+    };
+  }
+
+  function reveal(winner, drawnAt) {
+    var card = document.createElement('article');
+    card.className = 'result';
+    card.setAttribute('aria-label', '抽签结果');
+
+    var rule = document.createElement('div');
+    rule.className = 'result-rule';
+
+    var label = document.createElement('p');
+    label.className = 'result-label';
+    label.textContent = '本次中选机构';
+
+    var name = document.createElement('h3');
+    name.className = 'result-name';
+    name.textContent = winner;
+
+    var meta = document.createElement('p');
+    meta.className = 'result-meta';
+    meta.textContent = '参与 ' + view.companies.length + ' 家 · ' + fmtTime(drawnAt);
+
+    card.append(rule, label, name, meta);
+    el.stage.replaceChildren(card);
+    fitResultName(name);
+
+    window.requestAnimationFrame(function () {
+      card.classList.add('is-in');
+    });
+
+    markWinner(winner);
+    view.revealed = true;
+    setHint('本轮抽签已完成。');
+    announce('抽签结果：' + winner);
+  }
+
+  function fadeOutResult() {
+    var card = el.stage.querySelector('.result');
+    if (!card) return Promise.resolve();
+
+    card.classList.remove('is-in');
+    card.classList.add('is-out');
+
+    return new Promise(function (resolve) {
+      window.setTimeout(resolve, reduceMotion.matches ? 0 : 260);
+    });
+  }
+
+  async function startDraw() {
+    if (view.busy || !view.loaded || !view.companies.length) return;
+
+    setBusy(true);
+    clearWinnerMark();
+    setHint('');
+
+    await fadeOutResult();
+
+    var picked = view.companies[randomIndex(view.companies.length)];
+    var drawnAt = new Date();
+
+    var tape = buildTape(view.companies, picked);
+    el.stage.replaceChildren(tape.view);
+
+    var spin = animateTape(tape);
+
+    spin.done.then(function () {
+      // 落定后略作停顿，再交出结果，避免取景框一闪而过
+      window.setTimeout(function () {
+        view.revealed = true;
+        setBusy(false);
+        reveal(picked, drawnAt);
+      }, reduceMotion.matches ? 0 : 240);
+    });
+  }
+
+  /* ---------------------------------------------------------------- *
+   * 配色切换
+   * ---------------------------------------------------------------- */
+
+  var THEME_KEY = 'tender-draw.theme';
+  var THEMES = ['ink', 'stone', 'pine'];
+  var themeDots = Array.prototype.slice.call(document.querySelectorAll('.theme-chip'));
+
+  function applyTheme(name, persist) {
+    if (THEMES.indexOf(name) < 0) return;
+
+    document.documentElement.setAttribute('data-theme', name);
+
+    themeDots.forEach(function (dot) {
+      dot.setAttribute('aria-checked', String(dot.getAttribute('data-theme-value') === name));
+    });
+
+    if (persist) {
+      try {
+        window.localStorage.setItem(THEME_KEY, name);
+      } catch (err) {
+        /* 记不住也不影响本次使用 */
+      }
+    }
+  }
+
+  /* 手动选过之后从地址栏摘掉 ?theme=，否则刷新会被它盖回去 */
+  function dropThemeParam() {
+    try {
+      var url = new URL(window.location.href);
+      if (!url.searchParams.has('theme')) return;
+      url.searchParams.delete('theme');
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch (err) {
+      /* 忽略：地址栏改不了不影响配色生效 */
+    }
+  }
+
+  themeDots.forEach(function (dot, index) {
+    dot.addEventListener('click', function () {
+      applyTheme(dot.getAttribute('data-theme-value'), true);
+      dropThemeParam();
+    });
+
+    // 方向键在当前配色组内切换
+    dot.addEventListener('keydown', function (event) {
+      var step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      if (!step) return;
+      event.preventDefault();
+      var next = themeDots[(index + step + themeDots.length) % themeDots.length];
+      applyTheme(next.getAttribute('data-theme-value'), true);
+      next.focus();
+    });
+  });
+
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'ink', false);
+
+  /* ---------------------------------------------------------------- *
+   * 启动
+   * ---------------------------------------------------------------- */
+
+  var resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () {
+      fitResultName(el.stage.querySelector('.result-name'));
+    }, 160);
+  });
+
+  el.draw.addEventListener('click', startDraw);
+  el.edit.addEventListener('click', openEditor);
+  el.editAdd.addEventListener('click', addEditorRow);
+  el.editCancel.addEventListener('click', closeEditor);
+  el.editForm.addEventListener('submit', saveEditor);
+
+  showIdle();
+  loadCompanies();
+})();
+</script>
+</body>
+</html>
