@@ -695,6 +695,20 @@
   }
 
   /* 取景窗：极淡金色晕染 + 上下两道内发丝线 */
+  /* 只有两家候选时的单格轮换：一屏只出现一家，不会重名 */
+  .tape-view.is-solo {
+    /* 单格轮换时把格子加高，一屏一家也要有分量 */
+    --row: 144px;
+    height: var(--row);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+  }
+
+  .tape-view.is-solo .tape-row { font-size: 36px; }
+
+  /* 单格时取景窗与窗口重合，一屏只呈现一家 */
+  .tape-view.is-solo .tape-frame { top: 0; }
+
   .tape-frame {
     position: absolute;
     left: 0;
@@ -932,6 +946,10 @@
 
     .tape-row { font-size: 20px; }
 
+    .tape-view.is-solo { --row: 128px; }
+
+    .tape-view.is-solo .tape-row { font-size: 28px; }
+
     #draw { width: 100%; align-self: stretch; }
 
     .result { padding: 0; }
@@ -949,6 +967,10 @@
     :root { --row: 56px; }
 
     .tape-row { font-size: 18px; }
+
+    .tape-view.is-solo { --row: 112px; }
+
+    .tape-view.is-solo .tape-row { font-size: 24px; }
   }
 
   /* ---------- 动效偏好 ---------- */
@@ -1545,59 +1567,82 @@
     el.draw.textContent = busy ? '抽签中' : view.revealed ? '再次抽签' : '开始抽签';
   }
 
+  /**
+   * 构造滚动窗帘。
+   * 只有两家候选时，三行取景窗里必然出现同名两次；改为单格轮换。
+   * 三家以上则约束可见窗口，保证同一屏内不出现重名。
+   */
   function buildTape(companies, winner) {
+    var solo = companies.length < 3;
+    var visible = solo ? 1 : 3;
+
     var tapeView = document.createElement('div');
-    tapeView.className = 'tape-view';
+    tapeView.className = 'tape-view' + (solo ? ' is-solo' : '');
 
     var tape = document.createElement('div');
     tape.className = 'tape';
 
     var rows = [];
-    var previous = '';
+    var recent = [];
 
-    for (var i = 0; i < TAPE_ROWS - 1; i++) {
-      // 避免相邻两行同名，否则滚动时像卡帧
-      var pick = companies[randomIndex(companies.length)];
-      if (companies.length > 1) {
-        var guard = 0;
-        while (pick === previous && guard < 12) {
-          pick = companies[randomIndex(companies.length)];
-          guard += 1;
-        }
-      }
-      previous = pick;
-
+    function addRow(name) {
       var row = document.createElement('div');
       row.className = 'tape-row';
-      row.textContent = pick;
+      row.textContent = name;
       tape.appendChild(row);
       rows.push(row);
+      recent.push(name);
+      if (recent.length > 3) recent.shift();
+      return row;
     }
 
-    // 末行即中选机构，动画让它停在取景框中央
-    var last = document.createElement('div');
-    last.className = 'tape-row';
-    last.textContent = winner;
-    tape.appendChild(last);
-    rows.push(last);
+    // 在排除列表之外随机取一家，取不到就退回普通随机
+    function pickAvoiding(avoid) {
+      for (var i = 0; i < 30; i++) {
+        var pick = companies[randomIndex(companies.length)];
+        if (avoid.indexOf(pick) === -1) return pick;
+      }
+      return companies[randomIndex(companies.length)];
+    }
+
+    var spinRows = TAPE_ROWS - (solo ? 1 : 2);
+
+    for (var i = 0; i < spinRows; i++) {
+      addRow(pickAvoiding(solo ? [] : recent.slice(-2)));
+    }
+
+    // 中选机构落位
+    addRow(winner);
+    var winnerIndex = rows.length - 1;
+
+    // 三行窗口在中选行下方还要有一行，落地时下格才是实的
+    if (!solo) {
+      addRow(pickAvoiding([winner, recent[recent.length - 2]]));
+    }
 
     var frame = document.createElement('div');
     frame.className = 'tape-frame';
 
     tapeView.append(tape, frame);
 
-    return { view: tapeView, tape: tape, rows: rows };
+    return {
+      view: tapeView,
+      tape: tape,
+      rows: rows,
+      winnerIndex: winnerIndex,
+      visible: visible
+    };
   }
 
   function animateTape(tape) {
     var raf = 0;
     var cancelled = false;
 
-    var rowH = tape.rows[0] ? tape.rows[0].getBoundingClientRect().height : 56;
-    if (!rowH) rowH = 56;
+    var rowH = tape.rows[0] ? tape.rows[0].getBoundingClientRect().height : 72;
+    if (!rowH) rowH = 72;
 
-    // 末行落到三格取景框的中间格
-    var targetY = -(tape.rows.length - 2) * rowH;
+    // 让中选行停在取景窗正中（单格窗口时即窗口顶部对齐该行）
+    var targetY = -(tape.winnerIndex - (tape.visible - 1) / 2) * rowH;
 
     var done = new Promise(function (resolve) {
       if (reduceMotion.matches) {
