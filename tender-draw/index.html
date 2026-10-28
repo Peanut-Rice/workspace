@@ -38,14 +38,12 @@
   }
 
   /* ======================================================================
-     配色方案：同一套设计语言，三档不同温度的深色底。
-     金色始终是香槟一系，只随底色微调色温，避免三套之间像三种风格。
-     顺序有意义：后定义的方案覆盖前面的，靠后即优先。
+     配色：墨金 —— 深海军蓝、暖白与香槟金。
+     只用一套，不提供切换。
      ====================================================================== */
 
-  /* 墨金 —— 深海军蓝 + 香槟金（默认） */
-  :root,
-  [data-theme="ink"] {
+  /* 墨金 —— 深海军蓝 + 香槟金 */
+  :root {
     --ink-950: #07121E;
     --ink-900: #0A1726;
     --ink-850: #0D1D2F;
@@ -65,52 +63,6 @@
     --gold-bright: #E2C58F;
     --gold-line: rgba(201, 164, 104, 0.34);
     --gold-veil: rgba(201, 164, 104, 0.13);
-  }
-
-  /* 玄石 —— 暖近黑 + 古铜，偏皮革与黄铜的质料感 */
-  [data-theme="stone"] {
-    --ink-950: #0D0B09;
-    --ink-900: #12100D;
-    --ink-850: #17140F;
-    --ink-800: #1D1913;
-    --ink-750: #262019;
-
-    --cream: #F2EBDD;
-    --cream-72: rgba(242, 235, 221, 0.72);
-    --cream-56: rgba(242, 235, 221, 0.56);
-    --cream-38: rgba(242, 235, 221, 0.38);
-    --cream-24: rgba(242, 235, 221, 0.24);
-
-    --line: rgba(216, 198, 166, 0.12);
-    --line-strong: rgba(216, 198, 166, 0.2);
-
-    --gold: #C39C63;
-    --gold-bright: #DCC08B;
-    --gold-line: rgba(195, 156, 99, 0.36);
-    --gold-veil: rgba(195, 156, 99, 0.13);
-  }
-
-  /* 苍翠 —— 深松墨绿 + 淡金，最沉的一档 */
-  [data-theme="pine"] {
-    --ink-950: #05120E;
-    --ink-900: #071811;
-    --ink-850: #0A2118;
-    --ink-800: #0E2A1F;
-    --ink-750: #133326;
-
-    --cream: #EEEEDF;
-    --cream-72: rgba(238, 238, 223, 0.72);
-    --cream-56: rgba(238, 238, 223, 0.56);
-    --cream-38: rgba(238, 238, 223, 0.38);
-    --cream-24: rgba(238, 238, 223, 0.24);
-
-    --line: rgba(206, 214, 194, 0.12);
-    --line-strong: rgba(206, 214, 194, 0.2);
-
-    --gold: #C8B27C;
-    --gold-bright: #E0CD9F;
-    --gold-line: rgba(200, 178, 124, 0.34);
-    --gold-veil: rgba(200, 178, 124, 0.13);
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -207,89 +159,12 @@
   /* ---------- 页头 ---------- */
 
   .head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 32px;
     margin-bottom: 40px;
-  }
-
-  .head-main { min-width: 0; }
-
-  /* ---------- 配色切换 ---------- */
-
-  .themes {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-    padding-top: 2px;
-  }
-
-  .themes-label {
-    margin-right: 4px;
-    color: var(--cream-38);
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 0.12em;
-  }
-
-  .theme-chip {
-    padding: 4px 10px;
-    border: 1px solid transparent;
-    border-radius: var(--r-sm);
-    background: none;
-    color: var(--cream-38);
-    font-family: inherit;
-    font-size: 14px;
-    line-height: 20px;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: color 0.3s var(--ease), background-color 0.3s var(--ease),
-      border-color 0.3s var(--ease);
-  }
-
-  .theme-chip:hover {
-    color: var(--cream-72);
-    background-color: var(--ink-750);
-  }
-
-  .theme-chip:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 2px;
-  }
-
-  .theme-chip[aria-checked="true"] {
-    border-color: var(--gold-line);
-    background-color: var(--gold-veil);
-    color: var(--gold);
-  }
-
-  .eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0 0 16px;
-    color: var(--gold);
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 500;
-    letter-spacing: 0.24em;
-  }
-
-  /* 眉标前一小段金线，把视线带进标题 */
-  .eyebrow::before {
-    content: "";
-    width: 24px;
-    height: 1px;
-    background-color: var(--gold);
-    opacity: 0.9;
   }
 
   .title {
     max-width: 680px;
-    margin: 0 0 16px;
+    margin: 0;
     font-size: clamp(32px, 2.4vw + 22px, 40px);
     line-height: 1.15;
     font-weight: 600;
@@ -299,20 +174,6 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-  }
-
-  .sub {
-    max-width: 620px;
-    margin: 0;
-    color: var(--cream-56);
-    letter-spacing: 0.015em;
-    text-wrap: pretty;
-  }
-
-  .sub code {
-    color: var(--cream-72);
-    font-family: var(--mono);
-    font-size: 14px;
   }
 
   /* ---------- 面板 ---------- */
@@ -920,18 +781,10 @@
     .panel { padding: 24px; }
 
     .head {
-      flex-direction: column;
-      gap: 16px;
       margin-bottom: 24px;
     }
 
-    .themes { padding-top: 0; }
-
-    .eyebrow { margin-bottom: 12px; }
-
     .title { font-size: 30px; letter-spacing: 0.01em; }
-
-    .sub { font-size: 14px; line-height: 20px; }
 
     /* 手机上不做内层滚动，名单随页面一起滚动 */
     .roster {
@@ -986,42 +839,13 @@
     #draw[aria-busy="true"] { animation: none; opacity: 0.8; }
   }
 </style>
-<script>
-  /* 首屏前定好配色，避免刷新时闪一下默认色 */
-  (function () {
-    try {
-      var url = new URLSearchParams(window.location.search).get('theme');
-      var saved = window.localStorage.getItem('tender-draw.theme');
-      var theme = url || saved;
-      if (theme === 'ink' || theme === 'stone' || theme === 'pine') {
-        document.documentElement.setAttribute('data-theme', theme);
-      }
-    } catch (err) {
-      /* 静默：取不到就用默认墨金 */
-    }
-  })();
-</script>
 </head>
 <body>
 <a class="skip" href="#main">跳到主要内容</a>
 
 <main class="shell" id="main">
   <header class="head">
-    <div class="head-main">
-      <p class="eyebrow">集中采购 · 随机抽取</p>
-      <h1 class="title">招标代理机构随机抽签</h1>
-      <p class="sub">随机抽取一家招标代理机构，结果当场公布。</p>
-    </div>
-
-    <div class="themes" role="radiogroup" aria-label="配色方案">
-      <span class="themes-label" aria-hidden="true">配色</span>
-      <button class="theme-chip" type="button" role="radio" aria-checked="true"
-        data-theme-value="ink">墨金</button>
-      <button class="theme-chip" type="button" role="radio" aria-checked="false"
-        data-theme-value="stone">玄石</button>
-      <button class="theme-chip" type="button" role="radio" aria-checked="false"
-        data-theme-value="pine">苍翠</button>
-    </div>
+    <h1 class="title">招标代理机构随机抽签</h1>
   </header>
 
   <div class="grid">
@@ -1106,6 +930,10 @@
 
   function pad(n) {
     return String(n).padStart(2, '0');
+  }
+
+  function fmtDate(date) {
+    return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日';
   }
 
   function fmtTime(date) {
@@ -1723,7 +1551,8 @@
 
     var meta = document.createElement('p');
     meta.className = 'result-meta';
-    meta.textContent = '参与 ' + view.companies.length + ' 家 · ' + fmtTime(drawnAt);
+    meta.textContent = '参与 ' + view.companies.length + ' 家 · '
+      + fmtDate(drawnAt) + ' ' + fmtTime(drawnAt);
 
     card.append(rule, label, name, meta);
     el.stage.replaceChildren(card);
@@ -1777,63 +1606,6 @@
       }, reduceMotion.matches ? 0 : 240);
     });
   }
-
-  /* ---------------------------------------------------------------- *
-   * 配色切换
-   * ---------------------------------------------------------------- */
-
-  var THEME_KEY = 'tender-draw.theme';
-  var THEMES = ['ink', 'stone', 'pine'];
-  var themeDots = Array.prototype.slice.call(document.querySelectorAll('.theme-chip'));
-
-  function applyTheme(name, persist) {
-    if (THEMES.indexOf(name) < 0) return;
-
-    document.documentElement.setAttribute('data-theme', name);
-
-    themeDots.forEach(function (dot) {
-      dot.setAttribute('aria-checked', String(dot.getAttribute('data-theme-value') === name));
-    });
-
-    if (persist) {
-      try {
-        window.localStorage.setItem(THEME_KEY, name);
-      } catch (err) {
-        /* 记不住也不影响本次使用 */
-      }
-    }
-  }
-
-  /* 手动选过之后从地址栏摘掉 ?theme=，否则刷新会被它盖回去 */
-  function dropThemeParam() {
-    try {
-      var url = new URL(window.location.href);
-      if (!url.searchParams.has('theme')) return;
-      url.searchParams.delete('theme');
-      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
-    } catch (err) {
-      /* 忽略：地址栏改不了不影响配色生效 */
-    }
-  }
-
-  themeDots.forEach(function (dot, index) {
-    dot.addEventListener('click', function () {
-      applyTheme(dot.getAttribute('data-theme-value'), true);
-      dropThemeParam();
-    });
-
-    // 方向键在当前配色组内切换
-    dot.addEventListener('keydown', function (event) {
-      var step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-      if (!step) return;
-      event.preventDefault();
-      var next = themeDots[(index + step + themeDots.length) % themeDots.length];
-      applyTheme(next.getAttribute('data-theme-value'), true);
-      next.focus();
-    });
-  });
-
-  applyTheme(document.documentElement.getAttribute('data-theme') || 'ink', false);
 
   /* ---------------------------------------------------------------- *
    * 启动
