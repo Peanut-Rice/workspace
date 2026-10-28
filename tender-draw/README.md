@@ -115,6 +115,21 @@ http://127.0.0.1:8080/?theme=stone
 - 滚动动画只负责呈现：末行就是已经确定的中选机构，动画过程中不会改变结果。
 - 动画只改变 `transform` 与 `opacity`；系统开启「减少动态效果」时直接落定，不播放滚动。
 
+## 只读演示（GitHub Pages）
+
+仓库开启 GitHub Pages 后，`tender-draw/` 可以直接在浏览器里看：
+
+```
+https://peanut-rice.github.io/workspace/tender-draw/
+```
+
+同一份 `index.html` 会自动识别运行环境：
+
+- 有 Node 服务（`api/companies` 可用）：走接口读写，顶部显示「修改名单」；
+- 纯静态托管：自动改读同目录的 `companies.json`，只读展示，隐藏「修改名单」。
+
+Pages 上没有后端，所以改名单要么改文件后重新提交，要么按上面的方式用 Node 服务运行。
+
 ## 兼容性与界面
 
 - Chrome、Edge、Safari 近期版本；桌面与手机浏览器都可直接使用。

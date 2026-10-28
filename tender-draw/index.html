@@ -1008,7 +1008,7 @@
         <h2 class="panel-title" id="roster-title">参与抽签机构</h2>
         <div class="panel-meta">
           <span class="count"><b id="count">—</b>家</span>
-          <button class="btn btn--ghost btn--sm" id="edit" type="button">修改名单</button>
+          <button class="btn btn--ghost btn--sm" id="edit" type="button" hidden>修改名单</button>
         </div>
       </div>
       <ol class="roster" id="roster"></ol>
@@ -1075,7 +1075,8 @@
     editSave: document.getElementById('edit-save')
   };
 
-  var view = { companies: [], busy: false, revealed: false, loaded: false };
+  /* remote=true 表示有服务端接口，可以写回名单文件 */
+  var view = { companies: [], busy: false, revealed: false, loaded: false, remote: false };
 
   /* ---------------------------------------------------------------- *
    * 工具
@@ -1148,37 +1149,59 @@
     return out;
   }
 
-  /* 名单统一由服务端读写：GET 读取，PUT 保存 */
+  /* 名单：有服务端接口时读写文件，纯静态托管（如 GitHub Pages）时只读 companies.json */
   var API_ROSTER = 'api/companies';
+  var STATIC_ROSTER = 'companies.json';
 
   async function fetchCompanies() {
-    var res;
-
+    // 第一种：Node 服务在跑，走接口，可写回
     try {
-      res = await fetch(API_ROSTER + '?t=' + Date.now(), {
+      var apiRes = await fetch(API_ROSTER + '?t=' + Date.now(), {
         cache: 'no-store',
         headers: { Accept: 'application/json' }
       });
+
+      if (apiRes.ok) {
+        var apiData = null;
+        try {
+          apiData = normalize(await apiRes.json());
+        } catch (err) {
+          apiData = null;
+        }
+        if (apiData) {
+          view.remote = true;
+          return apiData;
+        }
+      }
+    } catch (err) {
+      /* 没有接口，继续尝试静态文件 */
+    }
+
+    // 第二种：静态托管，直接读同目录的名单文件（只读）
+    var res;
+    try {
+      res = await fetch(STATIC_ROSTER + '?t=' + Date.now(), { cache: 'no-store' });
     } catch (err) {
       throw new Error(window.location.protocol === 'file:' ? '请求未能发出' : '无法连接服务');
     }
 
-    var data = {};
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    var list = null;
     try {
-      data = await res.json();
+      list = normalize(await res.json());
     } catch (err) {
-      data = {};
+      list = null;
     }
-
-    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
-
-    var list = normalize(data);
     if (!list) throw new Error('名单格式无法识别');
 
+    view.remote = false;
     return list;
   }
 
   async function putCompanies(list) {
+    if (!view.remote) throw new Error('当前为只读部署');
+
     var res;
 
     try {
@@ -1254,6 +1277,8 @@
     renderRoster();
     el.count.textContent = String(list.length);
     el.draw.disabled = list.length === 0;
+    /* 纯静态托管没有写回能力，隐藏修改入口而不是让它报错 */
+    el.edit.hidden = !view.remote;
 
     if (!list.length) {
       setRosterState('暂无可抽签的机构，点「修改名单」添加一家。');
