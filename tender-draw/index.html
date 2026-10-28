@@ -1569,8 +1569,12 @@
 
   /**
    * 构造滚动窗帘。
-   * 只有两家候选时，三行取景窗里必然出现同名两次；改为单格轮换。
-   * 三家以上则约束可见窗口，保证同一屏内不出现重名。
+   *
+   * 中选结果在进入这一步之前就已经定下（见 startDraw 里的 randomIndex），
+   * 这里只生成展示用的行，所有去重都只作用于画面，不会改变结果。
+   *
+   * 只有两家候选时，三行取景窗里必然出现同名两次，因此改为单格轮换；
+   * 三家以上保证落定时取景窗内不出现同名。
    */
   function buildTape(companies, winner) {
     var solo = companies.length < 3;
@@ -1596,28 +1600,49 @@
       return row;
     }
 
-    // 在排除列表之外随机取一家，取不到就退回普通随机
-    function pickAvoiding(avoid) {
-      for (var i = 0; i < 30; i++) {
-        var pick = companies[randomIndex(companies.length)];
-        if (avoid.indexOf(pick) === -1) return pick;
+    // 在候选里等概率取一家，且不在 avoid 内；avoid 覆盖全部候选时返回 null
+    function pickOther(avoid) {
+      var pool = [];
+      for (var i = 0; i < companies.length; i++) {
+        if (avoid.indexOf(companies[i]) === -1) pool.push(companies[i]);
       }
-      return companies[randomIndex(companies.length)];
+      return pool.length ? pool[randomIndex(pool.length)] : null;
     }
 
-    var spinRows = TAPE_ROWS - (solo ? 1 : 2);
+    function pickRow(avoid) {
+      var pick = pickOther(avoid);
+      return pick !== null ? pick : companies[randomIndex(companies.length)];
+    }
+
+    function rowAt(index) {
+      return rows[index] ? rows[index].textContent : '';
+    }
+
+    var spinRows = TAPE_ROWS - 2;
+    var winnerIndex;
 
     for (var i = 0; i < spinRows; i++) {
-      addRow(pickAvoiding(solo ? [] : recent.slice(-2)));
+      addRow(pickRow(solo ? recent.slice(-1) : recent.slice(-2)));
     }
 
-    // 中选机构落位
-    addRow(winner);
-    var winnerIndex = rows.length - 1;
+    if (solo) {
+      // 单格窗口：停稳前只可能掠过紧邻的上方一行，它与中选必须不同
+      addRow(pickRow([winner]));
+      addRow(winner);
+      winnerIndex = rows.length - 1;
+    } else {
+      // 落定附近的四行整体构造，保证减速过程中任意一帧的三行取景窗都不重名
+      var post = pickOther([winner]) || winner;
+      var pre1 = pickOther([winner, post]) || pickOther([winner]) || winner;
+      var pre2 = pickOther([winner, pre1]) || pickOther([winner]) || winner;
+      var pre3 = pickOther([pre1, pre2]) || pre1;
 
-    // 三行窗口在中选行下方还要有一行，落地时下格才是实的
-    if (!solo) {
-      addRow(pickAvoiding([winner, recent[recent.length - 2]]));
+      addRow(pre3);
+      addRow(pre2);
+      addRow(pre1);
+      addRow(winner);
+      winnerIndex = rows.length - 1;
+      addRow(post);
     }
 
     var frame = document.createElement('div');
